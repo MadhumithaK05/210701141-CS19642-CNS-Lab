@@ -22,3 +22,34 @@
 2024-05-23 16:22:52,723: Key.enter
 2024-05-23 16:23:09,050: Key.ctrl
 2024-05-23 16:23:09,405: c
+This process is not trusted! Input event monitoring will not be possible until it is added to accessibility clients.
+This process is not trusted! Input event monitoring will not be possible until it is added to accessibility clients.
+m
+a
+d
+h
+u
+m
+i
+t
+h
+a
+Key.space
+Key.shift_r
+K
+Key.enter
+Key.shift_r
+C
+S
+E
+Key.enter
+e
+x
+i
+t
+Key.shift_r
+(
+)
+Key.enter
+Key.ctrl
+c
