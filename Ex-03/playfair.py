@@ -1,159 +1,96 @@
-def toLowerCase(text):
-	return text.lower()
+def generate_key_square(key):
+    key = key.replace("J", "I").upper()  # Replace 'J' with 'I' and convert to uppercase
+    key_square = []
+    used_chars = set()
 
-def removeSpaces(text):
-	newText = ""
-	for i in text:
-		if i == " ":
-			continue
-		else:
-			newText = newText + i
-	return newText
+    for char in key:
+        if char not in used_chars and char.isalpha():
+            key_square.append(char)
+            used_chars.add(char)
 
+    for char in "ABCDEFGHIKLMNOPQRSTUVWXYZ":  # 'J' is omitted
+        if char not in used_chars:
+            key_square.append(char)
+            used_chars.add(char)
 
-def Diagraph(text):
-	Diagraph = []
-	group = 0
-	for i in range(2, len(text), 2):
-		Diagraph.append(text[group:i])
+    return key_square
 
-		group = i
-	Diagraph.append(text[group:])
-	return Diagraph
+def find_position(char, key_square):
+    index = key_square.index(char)
+    row = index // 5
+    col = index % 5
+    return row, col
 
-def FillerLetter(text):
-	k = len(text)
-	if k % 2 == 0:
-		for i in range(0, k, 2):
-			if text[i] == text[i+1]:
-				new_word = text[0:i+1] + str('x') + text[i+1:]
-				new_word = FillerLetter(new_word)
-				break
-			else:
-				new_word = text
-	else:
-		for i in range(0, k-1, 2):
-			if text[i] == text[i+1]:
-				new_word = text[0:i+1] + str('x') + text[i+1:]
-				new_word = FillerLetter(new_word)
-				break
-			else:
-				new_word = text
-	return new_word
+def playfair_encrypt(plaintext, key):
+    key_square = generate_key_square(key)
+    plaintext = plaintext.replace("J", "I").upper()
+    plaintext_pairs = []
+    i = 0
 
+    while i < len(plaintext):
+        a = plaintext[i]
+        b = plaintext[i + 1] if i + 1 < len(plaintext) else "X"
 
-list1 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k', 'l', 'm',
-		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
+        if a == b:
+            b = "X"
 
-def generateKeyTable(word, list1):
-	key_letters = []
-	for i in word:
-		if i not in key_letters:
-			key_letters.append(i)
+        plaintext_pairs.append((a, b))
+        i += 2 if a != b else 1
 
-	compElements = []
-	for i in key_letters:
-		if i not in compElements:
-			compElements.append(i)
-	for i in list1:
-		if i not in compElements:
-			compElements.append(i)
+    ciphertext = ""
 
-	matrix = []
-	while compElements != []:
-		matrix.append(compElements[:5])
-		compElements = compElements[5:]
+    for a, b in plaintext_pairs:
+        row1, col1 = find_position(a, key_square)
+        row2, col2 = find_position(b, key_square)
 
-	return matrix
+        if row1 == row2:
+            ciphertext += key_square[row1 * 5 + (col1 + 1) % 5]
+            ciphertext += key_square[row2 * 5 + (col2 + 1) % 5]
+        elif col1 == col2:
+            ciphertext += key_square[((row1 + 1) % 5) * 5 + col1]
+            ciphertext += key_square[((row2 + 1) % 5) * 5 + col2]
+        else:
+            ciphertext += key_square[row1 * 5 + col2]
+            ciphertext += key_square[row2 * 5 + col1]
 
+    return ciphertext
 
-def search(mat, element):
-	for i in range(5):
-		for j in range(5):
-			if(mat[i][j] == element):
-				return i, j
+def playfair_decrypt(ciphertext, key):
+    key_square = generate_key_square(key)
+    ciphertext_pairs = []
+    i = 0
+    while i < len(ciphertext):
+        a = ciphertext[i]
+        b = ciphertext[i + 1] if i + 1 < len(ciphertext) else "X"
+        ciphertext_pairs.append((a, b))
+        i += 2
 
+    plaintext = ""
 
-def encrypt_RowRule(matr, e1r, e1c, e2r, e2c):
-	char1 = ''
-	if e1c == 4:
-		char1 = matr[e1r][0]
-	else:
-		char1 = matr[e1r][e1c+1]
+    for a, b in ciphertext_pairs:
+        row1, col1 = find_position(a, key_square)
+        row2, col2 = find_position(b, key_square)
 
-	char2 = ''
-	if e2c == 4:
-		char2 = matr[e2r][0]
-	else:
-		char2 = matr[e2r][e2c+1]
+        if row1 == row2:
+            plaintext += key_square[row1 * 5 + (col1 - 1) % 5]
+            plaintext += key_square[row2 * 5 + (col2 - 1) % 5]
+        elif col1 == col2:
+            plaintext += key_square[((row1 - 1) % 5) * 5 + col1]
+            plaintext += key_square[((row2 - 1) % 5) * 5 + col2]
+        else:
+            plaintext += key_square[row1 * 5 + col2]
+            plaintext += key_square[row2 * 5 + col1]
 
-	return char1, char2
+    return plaintext
 
 
-def encrypt_ColumnRule(matr, e1r, e1c, e2r, e2c):
-	char1 = ''
-	if e1r == 4:
-		char1 = matr[0][e1c]
-	else:
-		char1 = matr[e1r+1][e1c]
+key = input("Enter key: ")
+plaintext = input("Enter PlainText: ")
+ciphertext = playfair_encrypt(plaintext, key)
+decrypted_text = playfair_decrypt(ciphertext, key)
 
-	char2 = ''
-	if e2r == 4:
-		char2 = matr[0][e2c]
-	else:
-		char2 = matr[e2r+1][e2c]
-
-	return char1, char2
-
-
-def encrypt_RectangleRule(matr, e1r, e1c, e2r, e2c):
-	char1 = ''
-	char1 = matr[e1r][e2c]
-
-	char2 = ''
-	char2 = matr[e2r][e1c]
-
-	return char1, char2
-
-
-def encryptByPlayfairCipher(Matrix, plainList):
-	CipherText = []
-	for i in range(0, len(plainList)):
-		c1 = 0
-		c2 = 0
-		ele1_x, ele1_y = search(Matrix, plainList[i][0])
-		ele2_x, ele2_y = search(Matrix, plainList[i][1])
-
-		if ele1_x == ele2_x:
-			c1, c2 = encrypt_RowRule(Matrix, ele1_x, ele1_y, ele2_x, ele2_y)
-			# Get 2 letter cipherText
-		elif ele1_y == ele2_y:
-			c1, c2 = encrypt_ColumnRule(Matrix, ele1_x, ele1_y, ele2_x, ele2_y)
-		else:
-			c1, c2 = encrypt_RectangleRule(
-				Matrix, ele1_x, ele1_y, ele2_x, ele2_y)
-
-		cipher = c1 + c2
-		CipherText.append(cipher)
-	return CipherText
-
-
-text_Plain = 'instruments'
-text_Plain = removeSpaces(toLowerCase(text_Plain))
-PlainTextList = Diagraph(FillerLetter(text_Plain))
-if len(PlainTextList[-1]) != 2:
-	PlainTextList[-1] = PlainTextList[-1]+'z'
-
-key = "Monarchy"
-print("Key text:", key)
-key = toLowerCase(key)
-Matrix = generateKeyTable(key, list1)
-
-print("Plain Text:", text_Plain)
-CipherList = encryptByPlayfairCipher(Matrix, PlainTextList)
-
-CipherText = ""
-for i in CipherList:
-	CipherText += i
-print("CipherText:", CipherText)
+print(f"Key: {key}")
+print(f"Plaintext: {plaintext}")
+print(f"Ciphertext: {ciphertext}")
+print(f"Decrypted Text: {decrypted_text}")
 
